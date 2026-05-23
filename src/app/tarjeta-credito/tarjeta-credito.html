@@ -56,6 +56,14 @@
         </div>
 
       </form>
+
+      <div class="modal-backdrop" *ngIf="mostrarModal">
+        <div class="modal-card">
+          <button class="modal-close" type="button" (click)="closeModal()">×</button>
+          <h5>¡Registro exitoso!</h5>
+          <p>{{ mensajeExito }}</p>
+        </div>
+      </div>
     </div>
   </div>
 

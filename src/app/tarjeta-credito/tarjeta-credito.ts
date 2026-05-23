@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Para usar *ngFor en el HTML
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; // Herramientas de formularios
 
@@ -19,9 +19,12 @@ export class TarjetaCredito {
 
   // Definimos la propiedad para controlar nuestro formulario reactivo
   form: FormGroup;
+  mensajeExito = '';
+  mostrarModal = false;
+  private modalTimer?: ReturnType<typeof setTimeout>;
 
-  // Inyectamos FormBuilder en el constructor para armar la estructura del formulario
-  constructor(private fb: FormBuilder) {
+  // Inyectamos FormBuilder y ChangeDetectorRef en el constructor para armar la estructura del formulario
+  constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef) {
     this.form = this.fb.group({
       titular: ['', Validators.required],
       numeroTarjeta: ['', [Validators.required, Validators.maxLength(16), Validators.minLength(16)]],
@@ -43,9 +46,30 @@ export class TarjetaCredito {
     console.log(tarjeta);
 
     // Agregamos el objeto al arreglo para refrescar el listado
-     this.listTarjetas.push(tarjeta);
+    this.listTarjetas.push(tarjeta);
+    this.mensajeExito = '¡Registro realizado con éxito!';
+    this.mostrarModal = true;
+
+    // Oculta el modal automáticamente luego de 5 segundos
+    if (this.modalTimer) {
+      clearTimeout(this.modalTimer);
+    }
+    this.modalTimer = setTimeout(() => {
+      this.mostrarModal = false;
+      this.mensajeExito = '';
+      this.cdr.detectChanges();
+    }, 5000);
 
     // Limpiamos los campos del formulario
     this.form.reset();
+  }
+
+  closeModal() {
+    if (this.modalTimer) {
+      clearTimeout(this.modalTimer);
+      this.modalTimer = undefined;
+    }
+    this.mostrarModal = false;
+    this.mensajeExito = '';
   }
 }
