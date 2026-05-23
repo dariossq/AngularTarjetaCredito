@@ -74,14 +74,14 @@
         
         <table class="table">
           <tbody>
-            <tr *ngFor="let tarjeta of listTarjetas">
+            <tr *ngFor="let tarjeta of listTarjetas; let i = index">
               <td>{{ tarjeta.titular }}</td>
               <td>{{ tarjeta.numeroTarjeta }}</td>
               <td>{{ tarjeta.fechaExpiracion }}</td>
               <!-- <td>{{ tarjeta.cvv }}</td> -->
               <td>
                 <i class="far fa-edit text-info" style="cursor: pointer;"></i>
-                <i class="far fa-trash-alt text-danger ms-2" style="cursor: pointer;"></i>
+                <i  (click)="eliminarTarjeta(i)" class="far fa-trash-alt text-danger ms-2" style="cursor: pointer;"></i>
               </td>
             </tr>
           </tbody>

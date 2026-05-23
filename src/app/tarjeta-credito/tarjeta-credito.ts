@@ -1,12 +1,12 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Para usar *ngFor en el HTML
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; // Herramientas de formularios
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   standalone: true,
   selector: 'app-tarjeta-credito',
   // IMPORTANTE: Agregamos las herramientas aquí para que este componente standalone las reconozca
-  imports: [ReactiveFormsModule, CommonModule], 
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './tarjeta-credito.html',
   styleUrls: ['./tarjeta-credito.css'],
 })
@@ -72,4 +72,10 @@ export class TarjetaCredito {
     this.mostrarModal = false;
     this.mensajeExito = '';
   }
+
+  eliminarTarjeta(index: number) {
+    console.log(index);
+    this.listTarjetas.splice(index, 1);
+  }
+
 }
