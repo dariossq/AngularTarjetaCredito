@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Para usar *ngFor en el HTML
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
@@ -23,8 +23,8 @@ export class TarjetaCredito {
   mostrarModal = false;
   private modalTimer?: ReturnType<typeof setTimeout>;
 
-  // Inyectamos FormBuilder y ChangeDetectorRef en el constructor para armar la estructura del formulario
-  constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef) {
+  // Inyectamos FormBuilder, ChangeDetectorRef y NgZone en el constructor para armar la estructura del formulario
+  constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef, private zone: NgZone) {
     this.form = this.fb.group({
       titular: ['', Validators.required],
       numeroTarjeta: ['', [Validators.required, Validators.maxLength(16), Validators.minLength(16)]],
@@ -55,9 +55,9 @@ export class TarjetaCredito {
       clearTimeout(this.modalTimer);
     }
     this.modalTimer = setTimeout(() => {
-      this.mostrarModal = false;
-      this.mensajeExito = '';
-      this.cdr.detectChanges();
+      this.zone.run(() => {
+        this.closeModal();
+      });
     }, 5000);
 
     // Limpiamos los campos del formulario
@@ -71,11 +71,23 @@ export class TarjetaCredito {
     }
     this.mostrarModal = false;
     this.mensajeExito = '';
+    this.cdr.detectChanges();
   }
 
   eliminarTarjeta(index: number) {
     console.log(index);
     this.listTarjetas.splice(index, 1);
+    this.mensajeExito = 'La tarjeta fue eliminada con éxito!';
+    this.mostrarModal = true;
+
+    if (this.modalTimer) {
+      clearTimeout(this.modalTimer);
+    }
+    this.modalTimer = setTimeout(() => {
+      this.zone.run(() => {
+        this.closeModal();
+      });
+    }, 5000);
   }
 
 }
