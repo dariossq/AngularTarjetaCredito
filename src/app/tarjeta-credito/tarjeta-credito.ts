@@ -1,6 +1,8 @@
-import { ChangeDetectorRef, Component, NgZone } from '@angular/core';
-import { CommonModule } from '@angular/common'; // Para usar *ngFor en el HTML
+import { ChangeDetectorRef, Component, NgZone, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common'; // Para usar *ngFor en el HTML
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { TarjetaService } from '../services/tarjeta.service';
+import { Tarjeta } from '../models/tarjeta.interface';
 
 @Component({
   standalone: true,
@@ -10,21 +12,27 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
   templateUrl: './tarjeta-credito.html',
   styleUrls: ['./tarjeta-credito.css'],
 })
-export class TarjetaCredito {
-  // Aquí colocas tu arreglo de tarjetas
-  listTarjetas: any[] = [
-    { titular: 'Juan Perez', numeroTarjeta: '252525262', fechaExpiracion: '11/23', cvv: '123' },
-    { titular: 'Miguel Gonzalez', numeroTarjeta: '252525262', fechaExpiracion: '11/24', cvv: '312' }
-  ];
+export class TarjetaCredito implements OnInit {
+  private platformId = inject(PLATFORM_ID);
+
+  // Lista de tarjetas obtenidas del backend
+  listTarjetas: Tarjeta[] = [];
 
   // Definimos la propiedad para controlar nuestro formulario reactivo
   form: FormGroup;
+  modalTitle = '';
   mensajeExito = '';
   mostrarModal = false;
+  cargando = false;
   private modalTimer?: ReturnType<typeof setTimeout>;
 
-  // Inyectamos FormBuilder, ChangeDetectorRef y NgZone en el constructor para armar la estructura del formulario
-  constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef, private zone: NgZone) {
+  // Inyectamos FormBuilder, ChangeDetectorRef, NgZone y TarjetaService en el constructor
+  constructor(
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone,
+    private tarjetaService: TarjetaService
+  ) {
     this.form = this.fb.group({
       titular: ['', Validators.required],
       numeroTarjeta: ['', [Validators.required, Validators.maxLength(16), Validators.minLength(16)]],
@@ -33,35 +41,45 @@ export class TarjetaCredito {
     });
   }
 
-  // Método que procesa el envío de la información
+  ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.cargarTarjetas();
+    }
+  }
+
+  // Método que procesa el envío de la información y llama al backend
   agregarTarjeta() {
-    console.log(this.form.value); // Para verificar que los datos se están capturando correctamente
-    const tarjeta: any = {
+    if (!this.form.valid) return;
+
+    const tarjeta: Tarjeta = {
       titular: this.form.get('titular')?.value,
       numeroTarjeta: this.form.get('numeroTarjeta')?.value,
       fechaExpiracion: this.form.get('fechaExpiracion')?.value,
       cvv: this.form.get('cvv')?.value,
     };
 
-    console.log(tarjeta);
-
-    // Agregamos el objeto al arreglo para refrescar el listado
-    this.listTarjetas.push(tarjeta);
-    this.mensajeExito = '¡Registro realizado con éxito!';
-    this.mostrarModal = true;
-
-    // Oculta el modal automáticamente luego de 5 segundos
-    if (this.modalTimer) {
-      clearTimeout(this.modalTimer);
-    }
-    this.modalTimer = setTimeout(() => {
-      this.zone.run(() => {
-        this.closeModal();
-      });
-    }, 5000);
-
-    // Limpiamos los campos del formulario
-    this.form.reset();
+    this.cargando = true;
+    this.tarjetaService.crearTarjeta(tarjeta).subscribe({
+      next: (tarjetaCreada) => {
+        this.cargando = false;
+        this.listTarjetas.push(tarjetaCreada);
+        this.modalTitle = '¡Registro exitoso!';
+        this.mensajeExito = 'La tarjeta se registró con éxito.';
+        this.mostrarModal = true;
+        if (this.modalTimer) clearTimeout(this.modalTimer);
+        this.modalTimer = setTimeout(() => this.zone.run(() => this.closeModal()), 5000);
+        this.form.reset();
+      },
+      error: (err) => {
+        this.cargando = false;
+        console.error('Error crear tarjeta', err);
+        this.modalTitle = 'Error';
+        this.mensajeExito = 'Error al registrar la tarjeta. Intente de nuevo.';
+        this.mostrarModal = true;
+        if (this.modalTimer) clearTimeout(this.modalTimer);
+        this.modalTimer = setTimeout(() => this.zone.run(() => this.closeModal()), 5000);
+      }
+    });
   }
 
   closeModal() {
@@ -74,20 +92,41 @@ export class TarjetaCredito {
     this.cdr.detectChanges();
   }
 
-  eliminarTarjeta(index: number) {
-    console.log(index);
-    this.listTarjetas.splice(index, 1);
-    this.mensajeExito = 'La tarjeta fue eliminada con éxito!';
-    this.mostrarModal = true;
+  eliminarTarjeta(tarjetaId: number | undefined, index: number) {
+    if (!tarjetaId) return;
+    this.cargando = true;
+    this.tarjetaService.eliminarTarjeta(tarjetaId).subscribe({
+      next: () => {
+        this.cargando = false;
+        this.listTarjetas.splice(index, 1);
+        this.mensajeExito = 'La tarjeta fue eliminada con éxito!';
+        this.mostrarModal = true;
+        if (this.modalTimer) clearTimeout(this.modalTimer);
+        this.modalTimer = setTimeout(() => this.zone.run(() => this.closeModal()), 5000);
+      },
+      error: (err) => {
+        this.cargando = false;
+        console.error('Error eliminar tarjeta', err);
+        this.mensajeExito = 'Error al eliminar la tarjeta. Intente de nuevo.';
+        this.mostrarModal = true;
+        if (this.modalTimer) clearTimeout(this.modalTimer);
+        this.modalTimer = setTimeout(() => this.zone.run(() => this.closeModal()), 5000);
+      }
+    });
+  }
 
-    if (this.modalTimer) {
-      clearTimeout(this.modalTimer);
-    }
-    this.modalTimer = setTimeout(() => {
-      this.zone.run(() => {
-        this.closeModal();
-      });
-    }, 5000);
+  private cargarTarjetas() {
+    this.cargando = true;
+    this.tarjetaService.listarTarjetas().subscribe({
+      next: (data) => {
+        this.cargando = false;
+        this.listTarjetas = data || [];
+      },
+      error: (err) => {
+        this.cargando = false;
+        console.error('Error cargar tarjetas', err);
+      }
+    });
   }
 
 }

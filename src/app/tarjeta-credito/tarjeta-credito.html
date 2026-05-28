@@ -10,8 +10,8 @@
         <div class="input-group input-group-lg mb-3">
           <span class="input-group-text">
             <i class="fas fa-user"
-          [class.green-icon]="this.form.get('titular')?.valid"
-          [class.red-icon]="this.form.get('titular')?.invalid && this.form.get('titular')?.touched"></i>
+               [class.green-icon]="form.get('titular')?.valid"
+               [class.red-icon]="form.get('titular')?.invalid && form.get('titular')?.touched"></i>
           </span>
           <input formControlName="titular" type="text" class="form-control" placeholder="Titular">
         </div>
@@ -19,8 +19,8 @@
         <div class="input-group input-group-lg mb-3">
           <span class="input-group-text">
             <i class="fas fa-credit-card"
-          [class.green-icon]="this.form.get('numeroTarjeta')?.valid"
-          [class.red-icon]="this.form.get('numeroTarjeta')?.invalid && this.form.get('numeroTarjeta')?.touched"></i>
+               [class.green-icon]="form.get('numeroTarjeta')?.valid"
+               [class.red-icon]="form.get('numeroTarjeta')?.invalid && form.get('numeroTarjeta')?.touched"></i>
           </span>
           <input formControlName="numeroTarjeta" maxlength="16" type="text" class="form-control" placeholder="Numero Tarjeta">
         </div>
@@ -30,8 +30,8 @@
             <div class="input-group input-group-lg mb-3">
               <span class="input-group-text">
                 <i class="fas fa-calendar-alt"
-              [class.green-icon]="this.form.get('fechaExpiracion')?.valid"
-              [class.red-icon]="this.form.get('fechaExpiracion')?.invalid && this.form.get('fechaExpiracion')?.touched"></i>
+                   [class.green-icon]="form.get('fechaExpiracion')?.valid"
+                   [class.red-icon]="form.get('fechaExpiracion')?.invalid && form.get('fechaExpiracion')?.touched"></i>
               </span>
               <input formControlName="fechaExpiracion" maxlength="5" type="text" class="form-control" placeholder="MM/YY">
             </div>
@@ -41,8 +41,8 @@
             <div class="input-group input-group-lg mb-3">
               <span class="input-group-text">
                 <i class="fas fa-key"
-              [class.green-icon]="this.form.get('cvv')?.valid"
-              [class.red-icon]="this.form.get('cvv')?.invalid && this.form.get('cvv')?.touched"></i>
+                   [class.green-icon]="form.get('cvv')?.valid"
+                   [class.red-icon]="form.get('cvv')?.invalid && form.get('cvv')?.touched"></i>
               </span>
               <input formControlName="cvv" maxlength="3" type="password" class="form-control" placeholder="CVV">
             </div>
@@ -60,7 +60,7 @@
       <div class="modal-backdrop" *ngIf="mostrarModal">
         <div class="modal-card">
           <button class="modal-close" type="button" (click)="closeModal()">×</button>
-          <h5>¡Registro exitoso!</h5>
+          <h5>{{ modalTitle }}</h5>
           <p>{{ mensajeExito }}</p>
         </div>
       </div>
@@ -81,7 +81,7 @@
               <!-- <td>{{ tarjeta.cvv }}</td> -->
               <td>
                 <i class="far fa-edit text-info" style="cursor: pointer;"></i>
-                <i  (click)="eliminarTarjeta(i)" class="far fa-trash-alt text-danger ms-2" style="cursor: pointer;"></i>
+                <i  (click)="eliminarTarjeta(tarjeta.id, i)" class="far fa-trash-alt text-danger ms-2" style="cursor: pointer;"></i>
               </td>
             </tr>
           </tbody>

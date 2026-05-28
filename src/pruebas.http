@@ -1,0 +1,33 @@
+POST http://localhost:5163/api/Tarjeta
+Content-Type: application/json
+
+{
+  "titular": "ALBAN DARÍO",
+  "numeroTarjeta": "123werewfwefw",
+  "fechaExpiracion": "10/29",
+  "cvv": "123"
+}
+
+
+
+### Actualizar una tarjeta existente
+PUT http://localhost:5163/api/Tarjeta/3
+Content-Type: application/json
+
+{
+  "titular": "MODIFICADO",
+  "numeroTarjeta": "1234567890123456",
+  "fechaExpiracion": "12/30",
+  "cvv": "987"
+}
+
+
+### Consultar una tarjeta por su ID
+GET http://localhost:5163/api/Tarjeta/3
+
+
+### Eliminar una tarjeta por su ID
+DELETE http://localhost:5163/api/Tarjeta/3
+
+### Consultar una tarjeta por su ID
+GET http://localhost:5163/api/Tarjeta/
