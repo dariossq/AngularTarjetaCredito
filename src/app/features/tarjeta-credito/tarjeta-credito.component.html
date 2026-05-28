@@ -51,7 +51,12 @@
 
         <div class="d-grid gap-2">
           <button [disabled]="this.form.invalid" type="submit" class="btn btn-success btn-lg">
-            <i class="fas fa-database"></i>&nbsp; Aceptar
+            <i class="fas fa-database"></i>&nbsp; {{ editingTarjetaId ? 'Actualizar' : 'Aceptar' }}
+          </button>
+        </div>
+        <div class="d-grid gap-2 mt-2" *ngIf="editingTarjetaId !== null">
+          <button type="button" class="btn btn-secondary btn-lg" (click)="cancelarEdicion()">
+            Cancelar edición
           </button>
         </div>
 
@@ -80,14 +85,27 @@
               <td>{{ tarjeta.fechaExpiracion }}</td>
               <!-- <td>{{ tarjeta.cvv }}</td> -->
               <td>
-                <i class="far fa-edit text-info" style="cursor: pointer;"></i>
-                <i  (click)="eliminarTarjeta(tarjeta.id, i)" class="far fa-trash-alt text-danger ms-2" style="cursor: pointer;"></i>
+                <i class="far fa-edit text-info" style="cursor: pointer;" (click)="editarTarjeta(tarjeta)"></i>
+                <i (click)="showConfirmDelete(tarjeta.id, i)" class="far fa-trash-alt text-danger ms-2" style="cursor: pointer;"></i>
               </td>
             </tr>
           </tbody>
         </table>
 
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmación de eliminación -->
+<div class="modal-backdrop" *ngIf="confirmVisible">
+  <div class="modal-card">
+    <button class="modal-close" type="button" (click)="cancelConfirm()">×</button>
+    <h5>Confirmar eliminación</h5>
+    <p>{{ confirmMessage }}</p>
+    <div style="display:flex; gap:12px; justify-content:center; margin-top:12px;">
+      <button class="btn btn-danger" type="button" (click)="confirmDelete()">Eliminar</button>
+      <button class="btn btn-secondary" type="button" (click)="cancelConfirm()">Cancelar</button>
     </div>
   </div>
 </div>

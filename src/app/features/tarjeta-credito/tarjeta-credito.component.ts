@@ -20,9 +20,14 @@ export class TarjetaCreditoComponent implements OnInit {
 
   // Definimos la propiedad para controlar nuestro formulario reactivo
   form: FormGroup;
+  editingTarjetaId: number | null = null;
   modalTitle = '';
   mensajeExito = '';
   mostrarModal = false;
+  // Confirmación de eliminación
+  confirmVisible = false;
+  confirmMessage = '';
+  private confirmTarget: { id: number; index: number } | null = null;
   cargando = false;
   private modalTimer?: ReturnType<typeof setTimeout>;
 
@@ -59,27 +64,77 @@ export class TarjetaCreditoComponent implements OnInit {
     };
 
     this.cargando = true;
-    this.tarjetaService.crearTarjeta(tarjeta).subscribe({
-      next: (tarjetaCreada) => {
+
+    const request$ = this.editingTarjetaId
+      ? this.tarjetaService.actualizarTarjeta(this.editingTarjetaId, tarjeta)
+      : this.tarjetaService.crearTarjeta(tarjeta);
+
+    request$.subscribe({
+      next: (tarjetaGuardada) => {
         this.cargando = false;
-        this.listTarjetas.push(tarjetaCreada);
-        this.modalTitle = '¡Registro exitoso!';
-        this.mensajeExito = 'La tarjeta se registró con éxito.';
+
+        if (this.editingTarjetaId !== null) {
+          const index = this.listTarjetas.findIndex(t => t.id === this.editingTarjetaId);
+          const tarjetaActualizada = tarjetaGuardada ?? {
+            id: this.editingTarjetaId,
+            titular: tarjeta.titular,
+            numeroTarjeta: tarjeta.numeroTarjeta,
+            fechaExpiracion: tarjeta.fechaExpiracion,
+            cvv: tarjeta.cvv,
+          };
+
+          if (index !== -1) {
+            this.listTarjetas[index] = tarjetaActualizada;
+          }
+          this.modalTitle = '¡Actualización exitosa!';
+          this.mensajeExito = 'La tarjeta se actualizó con éxito.';
+        } else {
+          this.listTarjetas.push(tarjetaGuardada as Tarjeta);
+          this.modalTitle = '¡Registro exitoso!';
+          this.mensajeExito = 'La tarjeta se registró con éxito.';
+        }
+
         this.mostrarModal = true;
         if (this.modalTimer) clearTimeout(this.modalTimer);
         this.modalTimer = setTimeout(() => this.zone.run(() => this.closeModal()), 5000);
-        this.form.reset();
+        this.resetForm();
       },
       error: (err) => {
         this.cargando = false;
-        console.error('Error crear tarjeta', err);
+        console.error(this.editingTarjetaId ? 'Error actualizar tarjeta' : 'Error crear tarjeta', err);
         this.modalTitle = 'Error';
-        this.mensajeExito = 'Error al registrar la tarjeta. Intente de nuevo.';
+        this.mensajeExito = this.editingTarjetaId
+          ? 'Error al actualizar la tarjeta. Intente de nuevo.'
+          : 'Error al registrar la tarjeta. Intente de nuevo.';
         this.mostrarModal = true;
         if (this.modalTimer) clearTimeout(this.modalTimer);
         this.modalTimer = setTimeout(() => this.zone.run(() => this.closeModal()), 5000);
       }
     });
+  }
+
+  editarTarjeta(tarjeta: Tarjeta) {
+    if (!tarjeta.id) {
+      console.warn('Tarjeta sin id, no se puede editar', tarjeta);
+      return;
+    }
+
+    this.editingTarjetaId = tarjeta.id;
+    this.form.patchValue({
+      titular: tarjeta.titular,
+      numeroTarjeta: tarjeta.numeroTarjeta,
+      fechaExpiracion: tarjeta.fechaExpiracion,
+      cvv: tarjeta.cvv,
+    });
+  }
+
+  cancelarEdicion() {
+    this.resetForm();
+  }
+
+  private resetForm() {
+    this.form.reset();
+    this.editingTarjetaId = null;
   }
 
   closeModal() {
@@ -115,12 +170,47 @@ export class TarjetaCreditoComponent implements OnInit {
     });
   }
 
+  // Mostrar diálogo de confirmación antes de eliminar
+  showConfirmDelete(tarjetaId: number | undefined, index: number) {
+    if (!tarjetaId) {
+      this.mensajeExito = 'No se puede eliminar: identificador inválido.';
+      this.mostrarModal = true;
+      if (this.modalTimer) clearTimeout(this.modalTimer);
+      this.modalTimer = setTimeout(() => this.zone.run(() => this.closeModal()), 4000);
+      return;
+    }
+
+    this.confirmTarget = { id: tarjetaId, index };
+    this.confirmMessage = '¿Estás seguro que deseas eliminar esta tarjeta?';
+    this.confirmVisible = true;
+  }
+
+  confirmDelete() {
+    if (!this.confirmTarget) return;
+    // ocultar confirmación antes de llamar al servicio
+    this.confirmVisible = false;
+    this.eliminarTarjeta(this.confirmTarget.id, this.confirmTarget.index);
+    this.confirmTarget = null;
+  }
+
+  cancelConfirm() {
+    this.confirmVisible = false;
+    this.confirmTarget = null;
+  }
+
   private cargarTarjetas() {
     this.cargando = true;
     this.tarjetaService.listarTarjetas().subscribe({
       next: (data) => {
         this.cargando = false;
         this.listTarjetas = data || [];
+        console.debug('cargarTarjetas: datos recibidos', this.listTarjetas);
+        // Forzar la detección de cambios por si la vista no se actualiza inmediatamente
+        try {
+          this.cdr.detectChanges();
+        } catch (e) {
+          console.warn('detectChanges falló en cargarTarjetas', e);
+        }
       },
       error: (err) => {
         this.cargando = false;

@@ -30,8 +30,8 @@ export class TarjetaService {
   }
 
   // Actualizar una tarjeta existente
-  actualizarTarjeta(id: number, tarjeta: Tarjeta): Observable<Tarjeta> {
-    return this.http.put<Tarjeta>(`${this.apiUrl}/${id}`, tarjeta);
+  actualizarTarjeta(id: number, tarjeta: Tarjeta): Observable<Tarjeta | null> {
+    return this.http.put<Tarjeta | null>(`${this.apiUrl}/${id}`, tarjeta);
   }
 
   // Eliminar una tarjeta
