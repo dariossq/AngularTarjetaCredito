@@ -1,18 +1,18 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common'; // Para usar *ngFor en el HTML
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { TarjetaService } from '../services/tarjeta.service';
-import { Tarjeta } from '../models/tarjeta.interface';
+import { TarjetaService } from '../../shared/services/tarjeta.service';
+import { Tarjeta } from '../../shared/models/tarjeta.interface';
 
 @Component({
   standalone: true,
   selector: 'app-tarjeta-credito',
   // IMPORTANTE: Agregamos las herramientas aquí para que este componente standalone las reconozca
   imports: [ReactiveFormsModule, CommonModule],
-  templateUrl: './tarjeta-credito.html',
-  styleUrls: ['./tarjeta-credito.css'],
+  templateUrl: './tarjeta-credito.component.html',
+  styleUrls: ['./tarjeta-credito.component.css'],
 })
-export class TarjetaCredito implements OnInit {
+export class TarjetaCreditoComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
 
   // Lista de tarjetas obtenidas del backend

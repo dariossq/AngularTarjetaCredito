@@ -1,6 +1,6 @@
 <div class="page-wrapper">
-  <div class="button-row">
-    <button type="button" class="btn btn-primary">Primary</button>
+  <div class="button-row mb-3">
+    <a routerLink="/tarjeta" class="btn btn-primary">Tarjeta de Crédito</a>
     <button type="button" class="btn btn-secondary">Secondary</button>
     <button type="button" class="btn btn-success">Success</button>
     <button type="button" class="btn btn-danger">Danger</button>
@@ -12,6 +12,6 @@
   </div>
 
   <div class="content-card shadow-sm">
-    <app-tarjeta-credito></app-tarjeta-credito>
+    <router-outlet></router-outlet>
   </div>
 </div>
